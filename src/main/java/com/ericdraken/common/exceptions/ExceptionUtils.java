@@ -10,11 +10,24 @@ public class ExceptionUtils
 	{
 	}
 
+	/**
+	 * Return a detailed exception message from Apache Commons, and
+	 * add the stack trace at the first code point of com.ericdraken
+	 * @param e Throwable
+	 * @return Nicely-formatted exception string
+	 */
 	public static String getMessage( Throwable e )
 	{
-		// Return something like:
-		// NullPointerException: lala	at com.ericdraken.questrade.utils.ExceptionUtilsTest.exceptionMessageTest(ExceptionUtilsTest.java:15)
 		String[] frames = org.apache.commons.lang3.exception.ExceptionUtils.getStackFrames( e );
-		return org.apache.commons.lang3.exception.ExceptionUtils.getMessage( e ) + (frames.length > 1 ? frames[1] : "");
+		var msg = org.apache.commons.lang3.exception.ExceptionUtils.getMessage( e );
+
+		for ( String frame : frames )
+		{
+			if ( frame.contains( "com.ericdraken" ) )
+			{
+				return msg + ", " + frame.trim();
+			}
+		}
+		return msg;
 	}
 }

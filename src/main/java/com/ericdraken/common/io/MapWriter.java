@@ -22,6 +22,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
+import static com.ericdraken.common.exceptions.ExceptionUtils.getMessage;
+
 public class MapWriter implements Closeable
 {
 	private final File file;
@@ -53,7 +55,7 @@ public class MapWriter implements Closeable
 		catch ( Exception e )
 		{
 			// Create a new map
-			logger.info( "Creating new map because: {}", e.getMessage() );
+			logger.info( "Creating new map because: {}", getMessage( e ) );
 			numberMap = new HashMap<>();
 		}
 		finally
@@ -158,7 +160,7 @@ public class MapWriter implements Closeable
 		}
 		catch ( Exception e )
 		{
-			logger.error( e.getMessage() );
+			logger.error( getMessage( e ) );
 			return false;
 		}
 	}
