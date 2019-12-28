@@ -2,7 +2,7 @@
  * Copyright (c) 2019. Eric Draken - ericdraken.com
  */
 
-package com.ericdraken.utils.functional;
+package com.ericdraken.common.functional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
