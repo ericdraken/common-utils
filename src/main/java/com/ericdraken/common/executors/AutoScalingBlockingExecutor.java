@@ -17,7 +17,7 @@ public class AutoScalingBlockingExecutor extends BlockingExecutor
 
 	private final int maxPoolSize;
 
-	static final Logger logger = LoggerFactory.getLogger( MethodHandles.lookup().lookupClass() );
+	private static final Logger logger = LoggerFactory.getLogger( MethodHandles.lookup().lookupClass() );
 
 	/**
 	 * Creates a BlockingExecutor which will block and prevent further

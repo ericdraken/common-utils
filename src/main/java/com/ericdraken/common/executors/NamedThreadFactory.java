@@ -4,8 +4,7 @@
 
 package com.ericdraken.common.executors;
 
-import org.jetbrains.annotations.NotNull;
-
+import javax.annotation.Nonnull;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -23,7 +22,7 @@ public class NamedThreadFactory implements ThreadFactory
 		namePrefix = prefix + "-" +	poolNumber.getAndIncrement() + "-thread-";
 	}
 
-	public Thread newThread( @NotNull Runnable r )
+	public Thread newThread( @Nonnull Runnable r )
 	{
 		Thread t = new Thread( r,namePrefix + threadNumber.getAndIncrement() );
 		if ( t.isDaemon() )
