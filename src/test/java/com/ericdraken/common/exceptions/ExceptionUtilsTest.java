@@ -19,7 +19,7 @@ class ExceptionUtilsTest
 		}
 		catch ( Exception e )
 		{
-			String str = (ExceptionUtils.getMessage( e ) + ExceptionUtils.getStackFrames( e )[1] );
+			String str = ExceptionUtils.getMessage( e ).trim() + ", " + ExceptionUtils.getStackFrames( e )[1].trim();
 			System.out.println( str );
 			assertEquals( str, com.ericdraken.common.exceptions.ExceptionUtils.getMessage( e ) );
 		}
