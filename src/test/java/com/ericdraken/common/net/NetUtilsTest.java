@@ -18,8 +18,8 @@ class NetUtilsTest
 	@Test
 	void isReachable()
 	{
-		assertTrue( NetUtils.isReachable( "1.1.1.1" ) );
-		assertTrue( NetUtils.isReachable( "8.8.8.8" ) );
+		assertTrue( NetUtils.isNetworkReachable( "1.1.1.1" ) );
+		assertTrue( NetUtils.isNetworkReachable( "8.8.8.8" ) );
 	}
 
 	@Test
@@ -30,8 +30,8 @@ class NetUtilsTest
 		198.51.100.0/24 (TEST-NET-2)
 		203.0.113.0/24 (TEST-NET-3)
 		*/
-		assertFalse( NetUtils.isReachable( "192.0.2.100" ) );
-		assertFalse( NetUtils.isReachable( "0.0.0.0" ) );
+		assertFalse( NetUtils.isNetworkReachable( "192.0.2.100" ) );
+		assertFalse( NetUtils.isNetworkReachable( "0.0.0.0" ) );
 	}
 
 	@Test

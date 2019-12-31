@@ -24,7 +24,7 @@ public class NetUtils
 
 	private static final String WAN_REACHABLE_TEST_IP = "1.1.1.1";
 
-	private static final ArrayList<String> WAN_IP_REPORTER_URLS = new ArrayList<>( List.of(
+	private static final ArrayList<String> DEFAULT_IP_REPORTER_URLS = new ArrayList<>( List.of(
 		"https://ipinfo.io/ip",
 		"http://ipinfo.io/ip",
 		"https://bot.whatismyipaddress.com",
@@ -45,7 +45,21 @@ public class NetUtils
 	 */
 	public static InetAddress getPublicIp() throws IOException
 	{
-		return getPublicIp( null, null );
+		return getPublicIp( null, null, null );
+	}
+
+	/**
+	 * Get the external IP of the system, or return null on failure
+	 *
+	 * @param ipReporters IP reporter service URLs
+	 * @return InetAddress or null
+	 * @throws IOException Any IO exception
+	 */
+	public static InetAddress getPublicIp(
+		@Nullable List<String> ipReporters
+	) throws IOException
+	{
+		return getPublicIp( null, null, ipReporters );
 	}
 
 	/**
@@ -61,7 +75,7 @@ public class NetUtils
 		@Nonnegative int proxyPort
 	) throws IOException
 	{
-		return getPublicIp( proxyHost, proxyPort, null );
+		return getPublicIp( proxyHost, proxyPort, null, null );
 	}
 
 	/**
@@ -69,18 +83,38 @@ public class NetUtils
 	 *
 	 * @param proxyHost Proxy server host
 	 * @param proxyPort Proxy server port
-	 * @param vpnCookie VPN affinity cookie or null
+	 * @param ipReporters IP reporter service URLs
 	 * @return InetAddress or null
 	 * @throws IOException Any IO exception
 	 */
 	public static InetAddress getPublicIp(
 		@Nonnull String proxyHost,
 		@Nonnegative int proxyPort,
-		@Nullable String vpnCookie
+		@Nullable List<String> ipReporters
+	) throws IOException
+	{
+		return getPublicIp( proxyHost, proxyPort, null, ipReporters );
+	}
+
+	/**
+	 * Get the external IP of the system, or return null on failure
+	 *
+	 * @param proxyHost   Proxy server host
+	 * @param proxyPort   Proxy server port
+	 * @param vpnCookie   VPN affinity cookie or null
+	 * @param ipReporters IP reporter service URLs
+	 * @return InetAddress or null
+	 * @throws IOException Any IO exception
+	 */
+	public static InetAddress getPublicIp(
+		@Nonnull String proxyHost,
+		@Nonnegative int proxyPort,
+		@Nullable String vpnCookie,
+		@Nullable List<String> ipReporters
 	) throws IOException
 	{
 		final var proxy = new Proxy( Proxy.Type.HTTP, new InetSocketAddress( proxyHost, proxyPort ) );
-		return getPublicIp( proxy, vpnCookie );
+		return getPublicIp( proxy, vpnCookie, ipReporters );
 	}
 
 	/**
@@ -88,15 +122,17 @@ public class NetUtils
 	 *
 	 * @param proxy Proxy server
 	 * @param vpnCookie VPN affinity cookie or null
+	 * @param ipReporters IP reporter service URLs
 	 * @return InetAddress or null
 	 * @throws IOException Any IO exception
 	 */
 	public static InetAddress getPublicIp(
 		@Nullable Proxy proxy,
-		@Nullable String vpnCookie	// VPN affinity cookie
+		@Nullable String vpnCookie,
+		@Nullable List<String> ipReporters
 	) throws IOException
 	{
-		ArrayList<String> urls = new ArrayList<>( WAN_IP_REPORTER_URLS );
+		ArrayList<String> urls = new ArrayList<>( ipReporters == null ? DEFAULT_IP_REPORTER_URLS : ipReporters );
 		Collections.shuffle( urls );
 
 		for ( String urlStr : urls )
@@ -159,7 +195,7 @@ public class NetUtils
 	 */
 	public static boolean isNetworkReachable()
 	{
-		return isReachable( WAN_REACHABLE_TEST_IP );
+		return isNetworkReachable( WAN_REACHABLE_TEST_IP );
 	}
 
 	/**
@@ -168,7 +204,7 @@ public class NetUtils
 	 * @param ipAddress IP address
 	 * @return True if yes
 	 */
-	public static boolean isReachable( String ipAddress )
+	public static boolean isNetworkReachable( String ipAddress )
 	{
 		try
 		{
