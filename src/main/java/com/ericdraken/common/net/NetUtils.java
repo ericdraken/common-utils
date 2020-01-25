@@ -26,11 +26,7 @@ public class NetUtils
 
 	private static final ArrayList<String> DEFAULT_IP_REPORTER_URLS = new ArrayList<>( List.of(
 		"https://ipinfo.io/ip",
-		"http://ipinfo.io/ip",
-		"https://bot.whatismyipaddress.com",
-		"https://api.ipify.org",
-		"http://api.ipify.org",
-		"https://myexternalip.com/raw"
+		"https://bot.whatismyipaddress.com"
 	) );
 
 	private NetUtils()
@@ -158,8 +154,8 @@ public class NetUtils
 			{
 				conn.setInstanceFollowRedirects( true );
 				conn.setRequestMethod( "GET" );
-				conn.setConnectTimeout( 5_000 );
-				conn.setReadTimeout( 5_000 );
+				conn.setConnectTimeout( 10_000 );
+				conn.setReadTimeout( 10_000 );
 				conn.connect();
 
 				int responseCode = conn.getResponseCode();
@@ -209,10 +205,11 @@ public class NetUtils
 		try
 		{
 			InetAddress inet = InetAddress.getByName( ipAddress );
-			return inet.isReachable( 5_000 );
+			return inet.isReachable( 10_000 );
 		}
 		catch ( UnknownHostException e )
 		{
+			logger.error( e.getMessage() );
 			return false;
 		}
 		catch ( IOException e )
@@ -223,6 +220,7 @@ public class NetUtils
 			}
 			catch ( IOException e1 )
 			{
+				logger.error( e1.getMessage() );
 				return false;
 			}
 		}
@@ -248,16 +246,19 @@ public class NetUtils
 				// Picks up Windows and Unix unreachable hosts
 				if ( outputLine.toLowerCase().contains( "destination host unreachable" ) )
 				{
+					logger.warn( "{} unreachable", ipAddress );
 					return false;
 				}
 
 				if ( outputLine.toLowerCase().contains( "timed out" ) )
 				{
+					logger.warn( "{} timed out", ipAddress );
 					return false;
 				}
 
 				if ( outputLine.toLowerCase().contains( "100% loss" ) )
 				{
+					logger.warn( "{} 100% packet loss", ipAddress );
 					return false;
 				}
 			}
