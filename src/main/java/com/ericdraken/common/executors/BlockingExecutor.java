@@ -50,9 +50,8 @@ public class BlockingExecutor extends ThreadPoolExecutor
             try {
                 semaphore.acquire();
                 acquired = true;
-            } catch ( final InterruptedException e ) {
-                Thread.currentThread().interrupt();
-                logger.info( e.getMessage() );
+            } catch ( final InterruptedException e ) { // NOSONAR
+                // Thread.currentThread().interrupt();
             }
         } while ( !acquired );
 
@@ -87,10 +86,9 @@ public class BlockingExecutor extends ThreadPoolExecutor
         // Wait for all jobs and threads to fully complete
         while ( getActiveCount() > 0 || ! getQueue().isEmpty() ) {
             try {
-                Thread.sleep(100);
-            } catch ( InterruptedException e ) {
-                logger.warn("Thread wait interrupted: {}", e.getMessage());
-                Thread.currentThread().interrupt();
+                Thread.sleep(200);
+            } catch ( InterruptedException e ) { // NOSONAR
+                // Thread.currentThread().interrupt();
             }
         }
 
@@ -100,9 +98,9 @@ public class BlockingExecutor extends ThreadPoolExecutor
             shutdown();
             awaitTermination(5, TimeUnit.SECONDS);
         }
-        catch ( InterruptedException e) {
+        catch ( InterruptedException e) { // NOSONAR
             logger.warn("Shutdown interrupted: {}", e.getMessage());
-            Thread.currentThread().interrupt();
+            // Thread.currentThread().interrupt();
         }
         finally {
             if (!isTerminated()) {

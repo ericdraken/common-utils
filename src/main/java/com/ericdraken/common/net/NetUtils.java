@@ -134,24 +134,24 @@ public class NetUtils
 		for ( String urlStr : urls )
 		{
 			final var url = new URL( urlStr );    // Get external IP
-			HttpURLConnection conn;
-
-			if ( proxy != null )
-			{
-				conn = (HttpURLConnection) url.openConnection( proxy );
-			}
-			else
-			{
-				conn = (HttpURLConnection) url.openConnection();
-			}
-
-			if ( vpnCookie != null )
-			{
-				conn.addRequestProperty( "Cookie", vpnCookie );
-			}
+			HttpURLConnection conn = null;
 
 			try
 			{
+				if ( proxy != null )
+				{
+					conn = (HttpURLConnection) url.openConnection( proxy );
+				}
+				else
+				{
+					conn = (HttpURLConnection) url.openConnection();
+				}
+
+				if ( vpnCookie != null )
+				{
+					conn.addRequestProperty( "Cookie", vpnCookie );
+				}
+
 				conn.setInstanceFollowRedirects( true );
 				conn.setRequestMethod( "GET" );
 				conn.setConnectTimeout( 10_000 );
@@ -179,6 +179,13 @@ public class NetUtils
 			catch ( Exception e )
 			{
 				logger.warn( "Trouble with URL {}, exception {}", urlStr, getMessage( e ) );
+			}
+			finally
+			{
+				if ( conn != null )
+				{
+					conn.disconnect();
+				}
 			}
 		}
 		return null;
