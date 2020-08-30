@@ -4,11 +4,15 @@
 
 package com.ericdraken.common.zip;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import org.apache.commons.io.IOUtils;
+
+import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.*;
 import java.nio.file.attribute.FileTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
@@ -21,12 +25,17 @@ public class Zip
 
 	private static final int DEFAULT_BUFFER_SIZE = 1024 * 4;
 
+	private Zip()
+	{
+	}
+
 	/**
-	 * Zip a file
+	 * Zip a file to an archive and replace the archive completely. Use this method
+	 * to zip a a single file only as it will not append.
 	 *
-	 * @param sourcePath
-	 * @param outPath
-	 * @param internalTargetPath
+	 * @param sourcePath Source file to zip
+	 * @param outPath Destination zip file
+	 * @param internalTargetPath Internal path
 	 * @throws IOException
 	 */
 	public static void zipFile( Path sourcePath, Path outPath, String internalTargetPath ) throws IOException
@@ -35,11 +44,13 @@ public class Zip
 	}
 
 	/**
-	 * Zip a file
+	 * Zip a file to an archive and replace the archive completely. Use this method
+	 * to zip a a single file only as it will not append.
 	 *
-	 * @param sourcePath
-	 * @param outPath
-	 * @param internalTargetPath
+	 * @param sourcePath Source file to zip
+	 * @param outPath Destination zip file
+	 * @param internalTargetPath Internal path
+	 * @param method Zip method
 	 * @throws IOException
 	 */
 	public static void zipFile( Path sourcePath, Path outPath, String internalTargetPath, int method ) throws IOException
@@ -126,5 +137,82 @@ public class Zip
 		{
 			return file.getEntry( internalSourcePath );
 		}
+	}
+
+	/**
+	 * Example:
+	 * Path toBeAdded = FileSystems.getDefault().getPath("a.txt").toAbsolutePath();
+	 * addFile(zipLocation, toBeAdded, "aa/aa.txt");
+	 *
+	 * @param zipfs
+	 * @param toBeAdded
+	 * @param internalPath
+	 * REF: https://stackoverflow.com/a/14733863/1938889
+	 * REF: http://www.pixeldonor.com/2013/oct/12/concurrent-zip-compression-java-nio/
+	 */
+	public static boolean addFile( final FileSystem zipfs, final Path toBeAdded, final String internalPath ) throws IOException
+	{
+		// Copy input file to ZipFileSystem
+		File inFile = toBeAdded.toFile();
+		try ( FileInputStream in = new FileInputStream( inFile ) )
+		{
+			// Create internal path in the zipfs
+			Path internalTargetPath = zipfs.getPath( internalPath );
+
+			// Check if the file size is the same
+			if ( Files.exists( internalTargetPath ) )
+			{
+				final long zippedSize = (long) Files.getAttribute( internalTargetPath, "zip:size" );
+				if ( zippedSize == inFile.length() )
+				{
+					// No need to replace it
+					return false;
+				}
+			}
+
+			// Create output stream into the zipfs
+			try ( OutputStream out = Files.newOutputStream( internalTargetPath ) )
+			{
+				// Copy the source file to the Zip FS
+				IOUtils.copy( in, out );
+			}
+			catch ( IOException e )
+			{
+				// Create the parent folder(s) on exception
+				Files.createDirectories( internalTargetPath.getParent() );
+				try ( OutputStream out = Files.newOutputStream( internalTargetPath ) )
+				{
+					// Copy the source file to the Zip FS
+					IOUtils.copy( in, out );
+				}
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Create a new zip file system that is autocloseable
+	 *
+	 * @param zipLocation The resultant zip file
+	 * @return A new FileSystem
+	 * @throws IOException
+	 * @throws URISyntaxException
+	 */
+	public static FileSystem createZipFileSystem( final Path zipLocation ) throws IOException, URISyntaxException
+	{
+		Map<String, Object> env = new HashMap<>();
+
+		// Check if file exists
+		env.put( "create", String.valueOf( Files.notExists( zipLocation ) ) );
+
+		// To prevent heap memory errors
+		// REF: https://stackoverflow.com/a/23861949/1938889
+		env.put( "useTempFile", Boolean.TRUE );
+
+		// Use a Zip filesystem URI
+		URI fileUri = zipLocation.toUri();
+		URI zipUri = new URI( "jar:" + fileUri.getScheme(), fileUri.getPath(), null );
+
+		return FileSystems.newFileSystem( zipUri, env );
 	}
 }
